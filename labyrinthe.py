@@ -3,7 +3,6 @@
     Ce module contient la classe Labyrinthe.
 """
 from collections import namedtuple
-from coordonnees import Coordonnees
 import pickle
 import donnees
 from carte import Carte
@@ -26,17 +25,17 @@ class Labyrinthe:
             self.robot = self.carte.get_robot()
             self.obstacle = " "
         else:
-            # pickle n'aime pas les namedtuple, les sauvegardes
-            # ne contiennent donc pas des instances completes
-            # je suis preneur de solutions pour gerer les namedtuple
-            # via pickle (je pourrai passer par des tuples classiques
-            # mais c'est tellement moins lisible)
             # on recréé une instance à partir des infos de sauvegarde
             sauvegarde = self.charger_partie(carte_a_charger.nom)
-            Coordonnees = namedtuple('Coordonnees', ['abscisse', 'ordonnee'])
-            self.robot = Coordonnees(sauvegarde[1][0], sauvegarde[1][1])
-            self.obstacle = sauvegarde[2]
-            self.carte.deplacer_robot(" ", self.robot)
+            self.robot = sauvegarde.robot
+            self.obstacle = sauvegarde.obstacle
+            self.carte = sauvegarde.carte
+            print(self)
+            if 0 == 1:
+                Coordonnees = namedtuple('Coordonnees', ['abscisse', 'ordonnee'])
+                self.robot = Coordonnees(sauvegarde[1][0], sauvegarde[1][1])
+                self.obstacle = sauvegarde[2]
+                self.carte.deplacer_robot(" ", self.robot)
 
     def __repr__(self):
         """
@@ -45,9 +44,15 @@ class Labyrinthe:
         """
 
         return "<Labyrinthe carte={0} robot={1} obstacle={2}>".format(
-            self.carte.nom, self.robot, donnees.obstacles[self.obstacle].nom)
+            self.carte.nom, repr(self.robot), repr(self.obstacle))
 
-    def __getstate__(self):
+    def __str__(self):
+        """
+            redefinit la façon d'afficher le labyrinthe
+        """
+        return "{0} \n {1}".format(self.carte.nom, str(self.carte))
+
+    def __agetstate__(self):
         """
             methode pour gerer la récupération de donnees de Pickle
             non utilisée actuellement car conflict avec les namedtuple
@@ -55,7 +60,7 @@ class Labyrinthe:
         robot_pickle = (self.robot.abscisse, self.robot.ordonnee)
         return (self.carte.nom, robot_pickle, self.obstacle)
 
-    def __setstate__(self, lab):
+    def __asetstate__(self, lab):
         """
             methode pour gerer la création de donnees de Pickle
             non utilisée actuellement car conflict avec les namedtuple
@@ -64,7 +69,7 @@ class Labyrinthe:
         self.carte = Carte(nom_carte)
         Coordonnees = namedtuple('Coordonnees', ['abscisse', 'ordonnee'])
         self.robot = Coordonnees(tuple_robot[0], tuple_robot[1])
-        self.carte.deplacer_robot(" ", self.robot)
+        self.carte.deplacer_robot(self.robot, " ", (tuple_robot[0], tuple_robot[1]))
         print(self)
 
     def effectuer_deplacements(self, deplacements):
@@ -106,7 +111,7 @@ class Labyrinthe:
                 self.obstacle = obstacle_suivant
                 self.sauvegarder_partie()
             elif obstacle_suivant.type_de_blocage == "sortie":
-                # on stoppe en cas d'obstacle de sortie
+                # on stoppe en cas de sortie
                 # mais on met tout de même à jour le labyrinthe
                 print("Fin du mouvement")
                 self.carte.deplacer_robot(self.robot, self.obstacle, position_suivante)
@@ -141,19 +146,35 @@ class Labyrinthe:
             mon_pickler = pickle.Pickler(fichier)
             mon_pickler.dump(sauvegardes)
 
+        with open(donnees.fichier_sav, 'rb') as fichier:
+            mon_depickler = pickle.Unpickler(fichier)
+            try:
+                # pour des raisons de conflits entre namedtuple et Pickle
+                # passage par des tuples classiques pour la sauvegarde
+                sauvegardes = mon_depickler.load()
+                sauvegardes[self.carte.nom] = self
+            except EOFError:
+                sauvegardes = {}
+                sauvegardes[self.carte.nom] = self
+        with open(donnees.fichier_sav, 'wb') as fichier:
+            mon_pickler = pickle.Pickler(fichier)
+            mon_pickler.dump(sauvegardes)
+
     def supprimer_partie(self):
         """
             Supprime une sauvegarde après avoir gagné le jeu
             On utilise le fichier données.py pour avoir le nom du fichier
         """
-        with open(donnees.fichier_sauvegardes, 'rb') as fichier:
+        # with open(donnees.fichier_sauvegardes, 'rb') as fichier:
+        with open(donnees.fichier_sav, 'rb') as fichier:
             mon_depickler = pickle.Unpickler(fichier)
             try:
                 sauvegardes = mon_depickler.load()
                 del sauvegardes[self.carte.nom]
             except EOFError:
                 sauvegardes = {}
-        with open(donnees.fichier_sauvegardes, 'wb') as fichier:
+        # with open(donnees.fichier_sauvegardes, 'wb') as fichier:
+        with open(donnees.fichier_sav, 'wb') as fichier:
             mon_pickler = pickle.Pickler(fichier)
             mon_pickler.dump(sauvegardes)
 
@@ -163,7 +184,7 @@ class Labyrinthe:
             charge les infos d'une partie commencée
             On utilise le fichier données.py pour avoir le nom du fichier
         """
-        with open(donnees.fichier_sauvegardes, 'rb') as fichier:
+        with open(donnees.fichier_sav, 'rb') as fichier:
             mon_depickler = pickle.Unpickler(fichier)
             try:
                 sauvegarde = mon_depickler.load()[nom_carte]

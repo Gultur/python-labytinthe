@@ -24,3 +24,4 @@ obstacles = {"O": Mur(), ".": Porte(), "U": Sortie(), "X": "Robot", " ": Chemin(
 
 # nom du fichier de sauvegarde
 fichier_sauvegardes = "sauvegardes.lsav"
+fichier_sav = "saves.lsav"

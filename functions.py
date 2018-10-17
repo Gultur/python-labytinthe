@@ -27,7 +27,8 @@ def liste_sauvegardes():
         on utilise le fichier données.py pour acceder au bon repertoire
     """
     Carte_type = namedtuple("Carte_type", ['nom', 'type'])
-    with open('sauvegardes.lsav', 'rb') as fichier:
+#    with open('sauvegardes.lsav', 'rb') as fichier:
+    with open('saves.lsav', 'rb') as fichier:
         mon_depickler = pickle.Unpickler(fichier)
         try:
             sauvegardes = []

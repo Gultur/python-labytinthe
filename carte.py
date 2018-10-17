@@ -68,9 +68,7 @@ class Carte:
             recupère l'instance du robot sur la carte initiale
             retourne : tuple de position
         """
-        # on recupère le symbole utilisé pour le robot
-
-        # symbole_robot = self.get_symbole("robot")
+        # on teste le type d'instace de chaque obstacle
         for obstacle in self.plan.values():
             if isinstance(obstacle, Robot):
                 return obstacle
@@ -93,7 +91,7 @@ class Carte:
                          nouvelle position du robot
             retourne : dictionnaire du plan mis à jour
         """
-        self.plan[robot.coordonnees] = obstacle_initial
+        self.plan[(robot.abscisse, robot.ordonnee)] = obstacle_initial
         robot.deplacer(nouvelle_position, self.plan[nouvelle_position])
         self.plan[nouvelle_position] = robot.symbole
 
@@ -110,7 +108,6 @@ class Carte:
         """
         carte = {}
         ordonnee = 0
-        # Coordonnees = namedtuple('Coordonnees', ['abscisse', 'ordonnee'])
         nom_fichier_carte = "{0}/{1}.txt".format(
             donnees.repertoire_des_cartes, nom_carte)
 
@@ -130,7 +127,7 @@ class Carte:
     @staticmethod
     def get_symbole(nom):
         """
-            permet de récuperer le symbole d'un obstacles
+            permet de récuperer le symbole d'un obstacle
             parametre : nom du symbole
             retourne : symbole
 
@@ -140,13 +137,3 @@ class Carte:
             if value.nom == nom:
                 return key
         return "No key"
-
-    @staticmethod
-    def get_infos_obstacle(symbole):
-        """
-            permet d'afficher les informations d'un obstacle
-            c'est à dire son effet et le message accompagnant sa découverte
-            parametre : le symbole représenant l'obstacles
-            retourne : namedtuple d'informations
-        """
-        return donnees.obstacles[symbole]
