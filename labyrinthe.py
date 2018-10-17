@@ -3,6 +3,7 @@
     Ce module contient la classe Labyrinthe.
 """
 from collections import namedtuple
+from coordonnees import Coordonnees
 import pickle
 import donnees
 from carte import Carte
@@ -22,7 +23,7 @@ class Labyrinthe:
         self.carte = Carte(carte_a_charger.nom)
 
         if carte_a_charger.type == "Nouvelle partie":
-            self.robot = self.carte.get_position_robot()
+            self.robot = self.carte.get_robot()
             self.obstacle = " "
         else:
             # pickle n'aime pas les namedtuple, les sauvegardes
@@ -73,48 +74,43 @@ class Labyrinthe:
             parametre: le déplacement (orientation, nombre de cases)
         """
         # on définit des coordonnees de mouvement selon l'axe cardinal
-        Coordonnees = namedtuple("Coordonnees", ["abscisse", "ordonnee"])
+        # Coordonnees = namedtuple("Coordonnees", ["abscisse", "ordonnee"])
         if deplacements.direction.upper() == "N":
-            mouvement = Coordonnees(0, -1)
+            mouvement = (0, -1)
         elif deplacements.direction.upper() == "S":
-            mouvement = Coordonnees(0, 1)
+            mouvement = (0, 1)
         elif deplacements.direction.upper() == "E":
-            mouvement = Coordonnees(1, 0)
+            mouvement = (1, 0)
         elif deplacements.direction.upper() == "O":
-            mouvement = Coordonnees(-1, 0)
+            mouvement = (-1, 0)
 
         # on créé une boucle pour gerer les deplacements case après case
         for i in range(1, deplacements.cases + 1):
-            obstacle_suivant = self.carte.get_obstacle(
-                (self.robot.abscisse + mouvement.abscisse,
-                 self.robot.ordonnee + mouvement.ordonnee))
-            info_obstacle = self.carte.get_infos_obstacle(obstacle_suivant)
-            print("Mouvement {0} : {1}".format(i, info_obstacle.message))
-            if info_obstacle.blocage == "bloquant":
+            position_suivante = (self.robot.abscisse + mouvement[0],
+                                 self.robot.ordonnee + mouvement[1])
+            print(position_suivante)
+            obstacle_suivant = self.carte.get_obstacle(position_suivante)
+
+            # info_obstacle = self.carte.get_infos_obstacle(obstacle_suivant)
+            message_obstacle = obstacle_suivant.message
+            blocage_obstacle = obstacle_suivant.type_de_blocage
+            print(message_obstacle, blocage_obstacle)
+            print("Mouvement {0} : {1}".format(i, obstacle_suivant.message))
+            if obstacle_suivant.type_de_blocage == "bloquant":
                 # on stoppe en cas d'obstacle blocant
                 print("Fin du mouvement")
                 print(self.carte)
                 return True
-            elif info_obstacle.blocage == "non bloquant":
-                nouvelle_position = Coordonnees(
-                    self.robot.abscisse + mouvement.abscisse,
-                    self.robot.ordonnee + mouvement.ordonnee)
-                nouvel_obstacle = self.carte.get_obstacle(nouvelle_position)
-                self.carte.deplacer_robot(self.obstacle, nouvelle_position)
-                self.robot = nouvelle_position
-                self.obstacle = nouvel_obstacle
+            elif obstacle_suivant.type_de_blocage == "non bloquant":
+                self.carte.deplacer_robot(self.robot, self.obstacle, position_suivante)
+                self.obstacle = obstacle_suivant
                 self.sauvegarder_partie()
-            elif info_obstacle.blocage == "sortie":
+            elif obstacle_suivant.type_de_blocage == "sortie":
                 # on stoppe en cas d'obstacle de sortie
                 # mais on met tout de même à jour le labyrinthe
                 print("Fin du mouvement")
-                nouvelle_position = Coordonnees(
-                    self.robot.abscisse + mouvement.abscisse,
-                    self.robot.ordonnee + mouvement.ordonnee)
-                nouvel_obstacle = self.carte.get_obstacle(nouvelle_position)
-                self.carte.deplacer_robot(self.obstacle, nouvelle_position)
-                self.robot = nouvelle_position
-                self.obstacle = nouvel_obstacle
+                self.carte.deplacer_robot(self.robot, self.obstacle, position_suivante)
+                self.obstacle = obstacle_suivant
                 self.sauvegarder_partie()
                 print(self.carte)
                 return False

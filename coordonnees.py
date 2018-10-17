@@ -18,6 +18,9 @@ class Coordonnees:
             self.abscisse, self.ordonnee
         )
 
+    def __str__(self):
+        return "({0}, {1})".format(self.abscisse, self.ordonnee)
+
     def __add__(self, other):
         return (self.abscisse + other.abscisse, self.ordonnee + other.ordonnee)
 
