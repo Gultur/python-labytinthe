@@ -7,11 +7,12 @@
 class Robot:
     """ classe Robot """
 
-    def __init__(self, nom, coordonnees):
-        self.nom = nom
-        self.coordonnees = coordonnees
+    def __init__(self, coordonnees):
+        self.symbole = "X"
+        # self.nom = "nom"
+        self.position = coordonnees
 
     def __repr__(self):
-        return "<Robot {0} : abscisse = {1} - ordonnee = {2} ".format(
-            self.nom, self.coordonnees.abscisse, self.coordonnees.ordonnee
+        return "<Robot {0} : abscisse = {2} - ordonnee = {3} ".format(
+            self.symbole, self.position.abscisse, self.position.ordonnee
         )

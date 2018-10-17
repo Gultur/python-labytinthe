@@ -18,7 +18,7 @@ class Obstacle:
             self.symbole, self.nom, self.type_de_blocage, self.message)
 
     def __str__(self):
-        return self.message
+        return self.symbole
 
 
 class Chemin(Obstacle):

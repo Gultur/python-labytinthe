@@ -96,7 +96,7 @@ class Carte:
     @staticmethod
     def charger_fichier_carte(nom_carte):
         """
-            recupere la carte et la transforme en dictionnaire
+            trabsforme une carte issue d'un fichier de base en dictionnaire
             parametre : tuple (nom/type) de la carte à charger
             retourne : dictionnaire de la carte
                         => clé : coordonnees(abscisses, ordonnees)
